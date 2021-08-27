@@ -4,17 +4,15 @@
       <amap-marker v-for="(student, key) in students" :key="key" :position="student.location" clickable @click="onMarkerClick(key)" />
       <amap-info-window v-if="active != null" :position="active != null ? students[active].location : null" :offset="[0, -50]" is-custom>
         <div class="info-window-content">
-          <md-card>
-            <md-card-header>
-              <div class="md-title">有哪些人</div>
-            </md-card-header>
-            <md-card-content>
-              <md-chip class="md-primary" v-for="(name, key) in getSameLocalStudents(active)" :key="key">{{ name }}</md-chip>
-            </md-card-content>
-            <md-card-actions>
-              <md-button @click="onCloseClick()">Close</md-button>
-            </md-card-actions>
-          </md-card>
+          <v-card>
+            <v-card-title>有哪些人</v-card-title>
+            <v-card-text>
+              <v-chip v-for="(name, key) in getSameLocalStudents(active)" :key="key">{{ name }}</v-chip>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn text @click="onCloseClick()">Close</v-btn>
+            </v-card-actions>
+          </v-card>
         </div>
       </amap-info-window>
     </amap>
