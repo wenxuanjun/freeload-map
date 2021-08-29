@@ -1,7 +1,32 @@
 <template>
   <v-app id="app">
     <v-app-bar app>
-      <v-autocomplete v-model="value" :items="names" label="要找哪个同学呢?" hide-no-data hide-details clearable solo></v-autocomplete>
+      <v-autocomplete v-model="value" class="mr-4" :items="names" label="要找哪个同学呢?" hide-no-data hide-details clearable solo rounded></v-autocomplete>
+      <v-menu left bottom offset-y min-width="100" transition="slide-y-transition">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-bind="attrs" v-on="on">
+            <v-icon>{{ icon }}</v-icon>
+          </v-btn>
+        </template>
+        <v-list close-on-click>
+          <v-list-item link>
+            <v-list-item-title @click="about = true">关于</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+      <v-dialog v-model="about" max-width="500">
+      <v-card>
+        <v-card-title>关于</v-card-title>
+        <v-card-text>
+          <div class="font-weight-black">这是1808班的蹭饭地图</div>
+          <div class="text-caption my-1">制作人：文炫钧、周子涵</div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text @click="about = false">关闭</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     </v-app-bar>
     <v-main>
     <amap :zoom="5">
@@ -39,6 +64,7 @@
 import Amap from "@amap/amap-vue/lib/amap";
 import AmapMarker from "@amap/amap-vue/lib/marker";
 import AmapInfoWindow from "@amap/amap-vue/lib/info-window";
+import { mdiMenu } from '@mdi/js'
 
 export default {
   name: "App",
@@ -83,6 +109,8 @@ export default {
       active: null,
       value: null,
       dialog: false,
+      about: false,
+      icon: mdiMenu,
       names: [
         "王子奕",
         "刘煜锟",
