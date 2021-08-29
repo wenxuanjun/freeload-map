@@ -49,7 +49,7 @@
     <v-dialog v-if="dialog" v-model="dialog" persistent max-width="500">
       <v-card>
         <v-card-title>{{ value }}</v-card-title>
-        <v-card-text></v-card-text>
+        <v-card-text>我是{{ value }}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text @click="dialog = false">关闭</v-btn>
@@ -72,6 +72,14 @@ export default {
     Amap,
     AmapMarker,
     AmapInfoWindow,
+  },
+  created() {
+    try {
+      document.body.removeChild(document.getElementById("app-loader"));
+      this.$vuetify.theme.dark = this.settings.theme.value;
+    } catch {
+      console.log("Have a nice day!")
+    }
   },
   methods: {
     onCloseClick () {
