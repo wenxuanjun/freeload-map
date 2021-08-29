@@ -1,22 +1,38 @@
 <template>
-  <div id="app" style="height: 100vh">
-    <amap :zoom="5" @map-click="onCloseClick">
-      <amap-marker v-for="(student, key) in students" :key="key" :position="student.location" clickable @click="onMarkerClick(key)" />
-      <amap-info-window v-if="active != null" :position="active != null ? students[active].location : null" :offset="[0, -50]" is-custom>
+  <v-app id="app">
+    <v-app-bar app>
+      <v-autocomplete v-model="value" :items="names" label="要找哪个同学呢?" hide-no-data hide-details clearable solo></v-autocomplete>
+    </v-app-bar>
+    <v-main>
+    <amap :zoom="5">
+      <amap-marker v-for="(name, key) in names" :key="key" :position="locations[key]" clickable @click="onMarkerClick(key)" />
+      <amap-info-window v-if="active != null" :position="active != null ? locations[active] : null" :offset="[0, -50]" is-custom>
         <div class="info-window-content">
-          <v-card>
+          <v-card min-width="180">
             <v-card-title>有哪些人</v-card-title>
             <v-card-text>
-              <v-chip v-for="(name, key) in getSameLocalStudents(active)" :key="key">{{ name }}</v-chip>
+              <v-chip v-for="(name, key) in getSameLocalNames(active)" :key="key" color="primary" @click="openDialog(name)">{{ name }}</v-chip>
             </v-card-text>
             <v-card-actions>
-              <v-btn text @click="onCloseClick()">Close</v-btn>
+              <v-spacer></v-spacer>
+              <v-btn text @click="onCloseClick()">关闭</v-btn>
             </v-card-actions>
           </v-card>
         </div>
       </amap-info-window>
     </amap>
-  </div>
+    <v-dialog v-if="dialog" v-model="dialog" persistent max-width="500">
+      <v-card>
+        <v-card-title>{{ value }}</v-card-title>
+        <v-card-text></v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text @click="dialog = false">关闭</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
@@ -32,80 +48,144 @@ export default {
     AmapInfoWindow,
   },
   methods: {
-    onCloseClick() {
+    onCloseClick () {
       this.active = null;
     },
-    onMarkerClick(key) {
+    onMarkerClick (key) {
       if (key != this.active) {
         this.onCloseClick();
-        new Promise((resolve) => setTimeout(resolve, 0)).then(() => {this.active = key});
+        new Promise((resolve) => setTimeout(resolve, 0)).then(() => {
+          this.active = key;
+        });
       }
     },
-    getSameLocalStudents (key) {
-      const location = this.students[key].location;
-      let students = [];
-      for (let i = 0; i < this.students.length; i++) {
-        if (JSON.stringify(this.students[i].location) == JSON.stringify(location))
-          students.push(this.students[i].name);
+    openDialog (name) {
+      this.value = name;
+      this.dialog = true;
+    },
+    getSameLocalNames (key) {
+      const location = this.locations[key];
+      let names = [];
+      for (let i = 0; i < this.locations.length; i++) {
+        if (JSON.stringify(this.locations[i]) == JSON.stringify(location))
+          names.push(this.names[i]);
       }
-      return students;
+      return names;
+    }
+  },
+  watch: {
+    value () {
+      this.dialog = true;
     }
   },
   data() {
     return {
       active: null,
-      students: [
-        { name: "王子奕", location: [87.616848, 43.825592] },
-        { name: "刘煜锟", location: [104.066541, 30.572269] },
-        { name: "曾笑芙蓉", location: [104.066541, 30.572269] },
-        { name: "谢可", location: [104.066541, 30.572269] },
-        { name: "李畋昊", location: [106.551556, 29.563009] },
-        { name: "刘浩然", location: [108.366543, 22.817002] },
-        { name: "吴瑞洁", location: [108.366543, 22.817002] },
-        { name: "刘佳璐", location: [110.198293, 20.044001] },
-        { name: "欧阳翔", location: [113.264434, 23.129162] },
-        { name: "刘思静", location: [113.576726, 22.270715] },
-        { name: "刘家麟", location: [113.576726, 22.270715] },
-        { name: "沈臻君", location: [113.014717, 25.770509] },
-        { name: "彭思谏", location: [111.467791, 27.238892] },
-        { name: "易森权", location: [112.944049, 27.829738] },
-        { name: "李轩昂", location: [112.571997, 26.893230] },
-        { name: "李珊蔓", location: [112.571997, 26.893230] },
-        { name: "肖洞熙", location: [112.571997, 26.893230] },
-        { name: "付东宸", location: [112.938814, 28.228209] },
-        { name: "梁明康", location: [112.938814, 28.228209] },
-        { name: "汤嘉豪", location: [112.938814, 28.228209] },
-        { name: "阳潘承", location: [112.938814, 28.228209] },
-        { name: "罗阳奕", location: [112.938814, 28.228209] },
-        { name: "刘一莹", location: [112.938814, 28.228209] },
-        { name: "余乐勤", location: [112.938814, 28.228209] },
-        { name: "陈汉英", location: [112.938814, 28.228209] },
-        { name: "黄艺霖", location: [115.858197, 28.682892] },
-        { name: "贺尔斯", location: [120.699366, 27.994267] },
-        { name: "周琪凯", location: [120.155070, 30.274084] },
-        { name: "周子涵", location: [120.155070, 30.274084] },
-        { name: "刘宏韬", location: [121.473701, 31.230416] },
-        { name: "文炫钧", location: [121.473701, 31.230416] },
-        { name: "阳鑫", location: [120.311910, 31.491169] },
-        { name: "王政豪", location: [120.585315, 31.298886] },
-        { name: "谢子麟", location: [120.585315, 31.298886] },
-        { name: "陈彦松", location: [118.796877, 32.060255] },
-        { name: "朱逸晨", location: [118.796877, 32.060255] },
-        { name: "辛婉瑢", location: [118.796877, 32.060255] },
-        { name: "李毅", location: [117.119999, 36.651216] },
-        { name: "王子煊", location: [116.407526, 39.904030] },
-        { name: "黄瑞英", location: [116.407526, 39.904030] },
-        { name: "朱汝晴", location: [116.407526, 39.904030] },
-        { name: "曾诗懿", location: [116.407526, 39.904030] },
-        { name: "谭鑫鹏", location: [125.323544, 43.817071] },
-        { name: "胡海帆", location: [126.661669, 45.742347] },
-        { name: "谢燚", location: [126.661669, 45.742347] },
-        { name: "嵇诗威", location: [112.454040, 34.619682] },
-        { name: "李静怡", location: [118.758816, 30.940718] },
-        { name: "李锦亮", location: [114.305392, 30.593098] },
-        { name: "赵高翔", location: [114.305392, 30.593098] }
-      ]
+      value: null,
+      dialog: false,
+      names: [
+        "王子奕",
+        "刘煜锟",
+        "曾笑芙蓉",
+        "谢可",
+        "李畋昊",
+        "刘浩然",
+        "吴瑞洁",
+        "刘佳璐",
+        "欧阳翔",
+        "刘思静",
+        "刘家麟",
+        "沈臻君",
+        "彭思谏",
+        "易森权",
+        "李轩昂",
+        "李珊蔓",
+        "肖洞熙",
+        "付东宸",
+        "梁明康",
+        "汤嘉豪",
+        "阳潘承",
+        "罗阳奕",
+        "刘一莹",
+        "余乐勤",
+        "陈汉英",
+        "黄艺霖",
+        "贺尔斯",
+        "周琪凯",
+        "周子涵",
+        "刘宏韬",
+        "文炫钧",
+        "阳鑫",
+        "王政豪",
+        "谢子麟",
+        "陈彦松",
+        "朱逸晨",
+        "辛婉瑢",
+        "李毅",
+        "王子煊",
+        "黄瑞英",
+        "朱汝晴",
+        "曾诗懿",
+        "谭鑫鹏",
+        "胡海帆",
+        "谢燚",
+        "嵇诗威",
+        "李静怡",
+        "李锦亮",
+        "赵高翔"
+      ],
+      locations: [
+        [87.616848, 43.825592],
+        [104.066541, 30.572269],
+        [104.066541, 30.572269],
+        [104.066541, 30.572269],
+        [106.551556, 29.563009],
+        [108.366543, 22.817002],
+        [108.366543, 22.817002],
+        [110.198293, 20.044001],
+        [113.264434, 23.129162],
+        [113.576726, 22.270715],
+        [113.576726, 22.270715],
+        [113.014717, 25.770509],
+        [111.467791, 27.238892],
+        [112.944049, 27.829738],
+        [112.571997, 26.89323],
+        [112.571997, 26.89323],
+        [112.571997, 26.89323],
+        [112.938814, 28.228209],
+        [112.938814, 28.228209],
+        [112.938814, 28.228209],
+        [112.938814, 28.228209],
+        [112.938814, 28.228209],
+        [112.938814, 28.228209],
+        [112.938814, 28.228209],
+        [112.938814, 28.228209],
+        [115.858197, 28.682892],
+        [120.699366, 27.994267],
+        [120.15507, 30.274084],
+        [120.15507, 30.274084],
+        [121.473701, 31.230416],
+        [121.473701, 31.230416],
+        [120.31191, 31.491169],
+        [120.585315, 31.298886],
+        [120.585315, 31.298886],
+        [118.796877, 32.060255],
+        [118.796877, 32.060255],
+        [118.796877, 32.060255],
+        [117.119999, 36.651216],
+        [116.407526, 39.90403],
+        [116.407526, 39.90403],
+        [116.407526, 39.90403],
+        [116.407526, 39.90403],
+        [125.323544, 43.817071],
+        [126.661669, 45.742347],
+        [126.661669, 45.742347],
+        [112.45404, 34.619682],
+        [118.758816, 30.940718],
+        [114.305392, 30.593098],
+        [114.305392, 30.593098]
+      ],
     };
-  }
+  },
 };
 </script>
