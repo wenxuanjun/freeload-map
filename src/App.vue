@@ -109,7 +109,7 @@ export default {
   },
   watch: {
     value () {
-      this.dialog = true;
+      if (this.value) this.dialog = true;
     }
   },
   data() {
