@@ -36,7 +36,7 @@
           <v-card min-width="180">
             <v-card-title>有哪些人</v-card-title>
             <v-card-text>
-              <v-chip v-for="(name, key) in getSameLocalNames(active)" :key="key" color="primary" @click="openDialog(name)">{{ name }}</v-chip>
+              <v-chip v-for="(name, key) in getSameLocalNames(active)" :key="key" class="mr-1 mb-1" color="primary" @click="openDialog(name)">{{ name }}</v-chip>
             </v-card-text>
             <v-card-actions>
               <v-spacer></v-spacer>
