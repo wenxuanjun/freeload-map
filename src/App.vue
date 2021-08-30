@@ -1,61 +1,90 @@
 <template>
   <v-app id="app">
     <v-app-bar app>
-      <v-autocomplete v-model="value" class="mr-4" :items="names" label="要找哪个同学呢?" hide-no-data hide-details clearable solo rounded></v-autocomplete>
+      <v-autocomplete v-model="name_value" class="mr-4" :items="names" label="要找哪个同学呢?" hide-no-data hide-details clearable solo rounded></v-autocomplete>
       <v-menu left bottom offset-y min-width="100" transition="slide-y-transition">
         <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-bind="attrs" v-on="on">
-            <v-icon>{{ icon }}</v-icon>
+            <v-icon>{{ menu_icon }}</v-icon>
           </v-btn>
         </template>
         <v-list close-on-click>
           <v-list-item link>
-            <v-list-item-title @click="about = true">关于</v-list-item-title>
+            <v-list-item-title @click="settings_dialog = true"
+              >设置</v-list-item-title
+            >
+          </v-list-item>
+          <v-list-item link>
+            <v-list-item-title @click="about_dialog = true"
+              >关于</v-list-item-title
+            >
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-dialog v-model="about" max-width="500">
-      <v-card>
-        <v-card-title>关于</v-card-title>
-        <v-card-text>
-          <div class="font-weight-black">这是1808班的蹭饭地图</div>
-          <div class="text-caption my-1">制作人：文炫钧、周子涵</div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text @click="about = false">关闭</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      <v-dialog v-model="settings_dialog" max-width="500">
+        <v-card>
+          <v-card-title>设置</v-card-title>
+          <v-card-text>
+            <v-container>
+              <v-form>
+                <v-select
+                  v-model="settings_value"
+                  :items="settings_items"
+                  label="主题"
+                ></v-select>
+              </v-form>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="settings_dialog = false">关闭</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <v-dialog v-model="about_dialog" max-width="500">
+        <v-card>
+          <v-card-title>关于</v-card-title>
+          <v-card-text>
+            <v-container>
+              <div class="font-weight-black">这是1808班的蹭饭地图</div>
+              <div class="text-caption my-1">制作人：文炫钧、周子涵</div>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="about_dialog = false">关闭</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-app-bar>
     <v-main>
-    <amap :zoom="5">
+      <amap :zoom="5" ref="map" :map-style="style">
       <amap-marker v-for="(name, key) in names" :key="key" :position="locations[key]" clickable @click="onMarkerClick(key)" />
-      <amap-info-window v-if="active != null" :position="active != null ? locations[active] : null" :offset="[0, -50]" is-custom>
+      <amap-info-window v-if="active_name != null" :position="active_name != null ? locations[active_name] : null" :offset="[0, -50]" is-custom>
         <div class="info-window-content">
           <v-card min-width="180">
             <v-card-title>有哪些人</v-card-title>
             <v-card-text>
-              <v-chip v-for="(name, key) in getSameLocalNames(active)" :key="key" class="mr-1 mb-1" color="primary" @click="openDialog(name)">{{ name }}</v-chip>
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn text @click="onCloseClick()">关闭</v-btn>
-            </v-card-actions>
-          </v-card>
-        </div>
-      </amap-info-window>
-    </amap>
-    <v-dialog v-if="dialog" v-model="dialog" persistent max-width="500">
-      <v-card>
-        <v-card-title>{{ value }}</v-card-title>
-        <v-card-text>我是{{ value }}</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text @click="dialog = false">关闭</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+              <v-chip v-for="(name, key) in getSameLocalNames(active_name)" :key="key" class="mr-1 mb-1" color="primary" @click="openNameDialog(name)">{{ name }}</v-chip>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn text @click="onCloseClick()">关闭</v-btn>
+              </v-card-actions>
+            </v-card>
+          </div>
+        </amap-info-window>
+      </amap>
+      <v-dialog v-if="name_dialog" v-model="name_dialog" persistent max-width="500">
+        <v-card>
+          <v-card-title>{{ name_value }}</v-card-title>
+          <v-card-text>我是{{ name_value }}</v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn text @click="name_dialog = false">关闭</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-main>
   </v-app>
 </template>
@@ -64,7 +93,7 @@
 import Amap from "@amap/amap-vue/lib/amap";
 import AmapMarker from "@amap/amap-vue/lib/marker";
 import AmapInfoWindow from "@amap/amap-vue/lib/info-window";
-import { mdiMenu } from '@mdi/js'
+import { mdiMenu } from "@mdi/js";
 
 export default {
   name: "App",
@@ -75,29 +104,32 @@ export default {
   },
   created() {
     try {
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        this.$vuetify.theme.dark = this.settings_value = true;
+        this.style = "amap://styles/dark";
+      }
       document.body.removeChild(document.getElementById("app-loader"));
-      this.$vuetify.theme.dark = this.settings.theme.value;
     } catch {
-      console.log("Have a nice day!")
+      console.log("Have a nice day!");
     }
   },
   methods: {
-    onCloseClick () {
-      this.active = null;
+    onCloseClick() {
+      this.active_name = null;
     },
-    onMarkerClick (key) {
-      if (key != this.active) {
+    onMarkerClick(key) {
+      if (key != this.active_name) {
         this.onCloseClick();
         new Promise((resolve) => setTimeout(resolve, 0)).then(() => {
-          this.active = key;
+          this.active_name = key;
         });
       }
     },
-    openDialog (name) {
+    openNameDialog(name) {
       this.value = name;
-      this.dialog = true;
+      this.name_dialog = true;
     },
-    getSameLocalNames (key) {
+    getSameLocalNames(key) {
       const location = this.locations[key];
       let names = [];
       for (let i = 0; i < this.locations.length; i++) {
@@ -105,20 +137,33 @@ export default {
           names.push(this.names[i]);
       }
       return names;
-    }
+    },
   },
   watch: {
-    value () {
-      if (this.value) this.dialog = true;
-    }
+    name_value() {
+      if (this.name_value) this.name_dialog = true;
+    },
+    settings_value() {
+      this.$vuetify.theme.dark = this.settings_value;
+      this.style = this.settings_value
+        ? "amap://styles/dark"
+        : "amap://styles/whitesmoke";
+    },
   },
   data() {
     return {
-      active: null,
-      value: null,
-      dialog: false,
-      about: false,
-      icon: mdiMenu,
+      active_name: null,
+      name_value: null,
+      name_dialog: false,
+      about_dialog: false,
+      menu_icon: mdiMenu,
+      style: "amap://styles/whitesmoke",
+      settings_dialog: false,
+      settings_value: false,
+      settings_items: [
+        { text: "亮色", value: false },
+        { text: "暗色", value: true },
+      ],
       names: [
         "王子奕",
         "刘煜锟",
@@ -168,7 +213,7 @@ export default {
         "嵇诗威",
         "李静怡",
         "李锦亮",
-        "赵高翔"
+        "赵高翔",
       ],
       locations: [
         [87.616848, 43.825592],
@@ -219,7 +264,7 @@ export default {
         [112.45404, 34.619682],
         [118.758816, 30.940718],
         [114.305392, 30.593098],
-        [114.305392, 30.593098]
+        [114.305392, 30.593098],
       ],
     };
   },

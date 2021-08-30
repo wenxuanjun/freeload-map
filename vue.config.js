@@ -1,4 +1,3 @@
-const TerserPlugin = require('terser-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
@@ -18,16 +17,6 @@ module.exports = {
   ],
   configureWebpack: {
     plugins: [
-      new TerserPlugin({
-        parallel: 4,
-        terserOptions: {
-          compress: {
-            drop_console: true,
-            drop_debugger: true,
-            pure_funcs: ['console.log']
-          }
-        }
-      }),
       new BundleAnalyzerPlugin({
         analyzerMode: 'static',
         reportFilename: 'report.html'
