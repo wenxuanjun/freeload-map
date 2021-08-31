@@ -109,12 +109,19 @@ export default {
         this.style = "amap://styles/dark";
       }
       document.body.removeChild(document.getElementById("app-loader"));
+      new Promise((resolve) => setTimeout(resolve, 1000)).then(() => {
+        document.getElementsByClassName("amap-logo")[0].remove()
+        document.getElementsByClassName("amap-copyright")[0].remove() 
+      });
     } catch {
       console.log("Have a nice day!");
     }
   },
   methods: {
     onCloseClick() {
+      this.$refs.map.$map.on('complete', function(){
+        
+      });
       this.active_name = null;
     },
     onMarkerClick(key) {
