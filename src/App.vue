@@ -133,7 +133,7 @@ export default {
       }
     },
     openNameDialog(name) {
-      this.value = name;
+      this.name_value = name;
       this.name_dialog = true;
     },
     getSameLocalNames(key) {
